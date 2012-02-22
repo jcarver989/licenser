@@ -1,0 +1,104 @@
+#!/usr/bin/env ruby
+
+require 'erb' 
+
+def generate_license(copyright_holder, license, year = Time.now.strftime("%Y"))
+  license_template = File.join(File.dirname(__FILE__), "../licenses", "#{license}.txt.erb")
+
+  text = File.read(license_template)
+  ERB.new(text).result(binding)
+end
+
+def get_license_choice
+  puts <<-OPTIONS
+Choose Your License By Entering a Number
+----------------------------------------
+
+  1. Apache 2
+  2. MIT
+  3. GPL 3.0
+  4. GPL 2.0
+  OPTIONS
+
+  ARGV.clear
+  choice = gets.strip
+  case choice
+  when "1"
+    return :apache2
+  when "2"
+    return :mit
+  when "3"
+    return :"gpl-3.0"
+  when "4"
+    return :"gpl-2.0"
+  end
+end
+
+def get_copyright_holder
+  ARGV.clear
+  print "Enter name of copyright holder: "
+  copyright_holder = gets.strip
+  return copyright_holder
+end
+
+def get_file_type
+  ARGV.clear
+  print "Enter your source file type: eg. .rb for all Ruby files: "
+  file_type = gets.strip 
+  return file_type
+end
+
+def files_list(file_type, load_path = ".")
+  selection = "#{load_path}/**/*#{file_type}"
+  Dir.glob(selection)
+end
+
+def get_comment_for_file_type(file_type)
+  types = {
+    ".rb"     => "#",
+    ".py"     => "#",
+    ".sh"     => "#",
+    ".coffee" => "#",
+
+    ".js"   => "//",
+    ".java"   => "//",
+    ".scala"  => "//",
+    ".cpp"    => "//",
+    ".c"      => "//"
+  }
+
+  types[file_type]
+end
+
+def comment(text, delimiter)
+  text.split($/).inject("") do |string, line|
+    string << "#{delimiter} #{line} \n"
+    string
+  end
+end
+
+
+
+license = generate_license(get_copyright_holder, get_license_choice)
+file_type = get_file_type
+commented_license = comment(license, get_comment_for_file_type(file_type))
+
+source_files = files_list(file_type)
+
+if source_files.size < 1
+  puts "No Source Files Found! Exiting..."
+  exit(1)
+end
+
+source_files.each do |file|
+  puts "Licensing file: #{file}"
+  previous_content = File.read(file)
+
+  File.open(file, 'w') do |f|
+    f << commented_license + "\n\n" + previous_content
+  end
+end
+
+
+puts "Done!"
+
