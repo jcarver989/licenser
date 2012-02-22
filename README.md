@@ -18,4 +18,4 @@ Installition
 
 3. cd to your project directory
 4. 
-      licenser # just follow the prompts
+      Run "licenser" from your shell and just follow the prompts
