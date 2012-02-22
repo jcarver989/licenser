@@ -12,6 +12,8 @@ Installition
 2.
 
       gem build licenser.gemspec
+
+
       gem install licenser-xxx.gem
 
 3. cd to your project directory
